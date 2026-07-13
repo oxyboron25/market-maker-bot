@@ -1,0 +1,7 @@
+build/
+.cache/
+*.o
+*.a
+results/*.csv
+results/*.png
+PROMPT_FOR_PROJECT2.txt
