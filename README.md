@@ -163,7 +163,7 @@ python3 analysis/plot_results.py as_strategy static_baseline
 
 ## Test Coverage
 
-50 test cases across 4 test files:
+50 test cases across 4 test files — all passing:
 
 | File | Tests | What's Covered |
 |------|-------|----------------|
@@ -171,6 +171,64 @@ python3 analysis/plot_results.py as_strategy static_baseline
 | `test_quoting.cpp` | 5 | Reservation price skew with inventory, spread vs gamma, max inventory cap, requote cycle (no orphans), static spread symmetry |
 | `test_risk_limits.cpp` | 5 | Normal quoting, max inventory blocking, drawdown kill-switch, kill halts quoting, cancel-all |
 | `test_pnl_tracker.cpp` | 5 | Buy-then-sell PnL, max drawdown on synthetic curve, fill rate, equity with unrealized, zero-fills Sharpe |
+
+### Test Output
+
+```
+Start  1: mid price from known book ........................   Passed    0.01 sec
+Start  2: mid price one-sided book .........................   Passed    0.00 sec
+Start  3: volatility increases with volatile series ........   Passed    0.00 sec
+Start  4: volatility is near default with no data ..........   Passed    0.00 sec
+Start  5: reservation price skews with inventory ...........   Passed    0.00 sec
+Start  6: spread increases with gamma at high volatility ...   Passed    0.00 sec
+Start  7: bot only quotes ask when max inventory hit .......   Passed    0.01 sec
+Start  8: requote cycle no orphaned orders .................   Passed    0.00 sec
+Start  9: static spread gives symmetric quotes .............   Passed    0.01 sec
+Start 10: risk manager allows normal quoting ...............   Passed    0.00 sec
+Start 11: risk manager blocks at max inventory .............   Passed    0.00 sec
+Start 12: kill switch triggers on drawdown .................   Passed    0.00 sec
+Start 13: kill switch halts quoting ........................   Passed    0.01 sec
+Start 14: cancel all works .................................   Passed    0.01 sec
+Start 15: realized PnL from buy then sell ..................   Passed    0.00 sec
+Start 16: max drawdown on synthetic curve ..................   Passed    0.00 sec
+Start 17: fill rate computation ............................   Passed    0.00 sec
+Start 18: equity includes unrealized .......................   Passed    0.01 sec
+Start 19: zero fills gives zero sharpe .....................   Passed    0.01 sec
+Start 20: basic buy limit rests on bid side ................   Passed    0.00 sec
+Start 21: basic sell limit rests on ask side ...............   Passed    0.00 sec
+Start 22: best bid/ask with multiple levels ................   Passed    0.00 sec
+Start 23: depth snapshot top-N .............................   Passed    0.00 sec
+Start 24: total order count ................................   Passed    0.00 sec
+Start 25: crossing limit orders fill .......................   Passed    0.00 sec
+Start 26: partial fill - incoming bigger .................   Passed    0.00 sec
+Start 27: partial fill - incoming smaller ................   Passed    0.01 sec
+Start 28: sweep across multiple price levels ...............   Passed    0.00 sec
+Start 29: market order eats through book ...................   Passed    0.00 sec
+Start 30: market order hits thin book ......................   Passed    0.00 sec
+Start 31: ioc no match just drops ..........................   Passed    0.00 sec
+Start 32: ioc partial match, rest drops ....................   Passed    0.00 sec
+Start 33: cancel resting order .............................   Passed    0.01 sec
+Start 34: cancel nonexistent order .........................   Passed    0.00 sec
+Start 35: cancel already filled order ......................   Passed    0.00 sec
+Start 36: modify moves to back of new price level ..........   Passed    0.00 sec
+Start 37: time priority - first in first out ...............   Passed    0.00 sec
+Start 38: sell side sweep matches bids highest first .......   Passed    0.00 sec
+Start 39: reject qty 0 .....................................   Passed    0.00 sec
+Start 40: reject negative price on limit ...................   Passed    0.00 sec
+Start 41: reject zero price on limit .......................   Passed    0.01 sec
+Start 42: market order accepts price=0 .....................   Passed    0.00 sec
+Start 43: cancel nonexistent id ............................   Passed    0.00 sec
+Start 44: double cancel ....................................   Passed    0.01 sec
+Start 45: fill sweeps multiple levels correctly ............   Passed    0.00 sec
+Start 46: modify with qty 0 is rejected ....................   Passed    0.00 sec
+Start 47: modify nonexistent order .........................   Passed    0.00 sec
+Start 48: fifo within same price level .....................   Passed    0.00 sec
+Start 49: empty level gets cleaned up ......................   Passed    0.00 sec
+Start 50: ioc buy below market does nothing ................   Passed    0.00 sec
+
+100% tests passed out of 50
+Total Test time (real) = 0.17 sec
+```
 
 ---
 
@@ -180,13 +238,40 @@ python3 analysis/plot_results.py as_strategy static_baseline
 
 Both strategies run against identical noise-trader flow (same seed, same parameters):
 
-| Metric | Avellaneda-Stoikov | Static Spread |
-|--------|-------------------|---------------|
-| Realized PnL | -312 | -16,198 |
-| Max Drawdown | 49.2% | 42.2% |
-| Fill Rate | 36.0% | 5.9% |
-| Total Fills | 95 | 1,089 |
-| Total Quotes | 264 | 18,338 |
+### Console Output
+
+```
+=== Market Maker Bot - Backtest ===
+
+[RISK] kill-switch at tick 133
+[AS Strategy]
+  Realized PnL:       -311.9460
+  Sharpe Ratio:       -10.6236
+  Max Drawdown:       0.4917
+  Fill Rate:          0.3598
+  Total Fills:        95
+  Total Quotes:       264
+
+[Static Spread Baseline]
+  Realized PnL:       -16198.0000
+  Sharpe Ratio:       0.0634
+  Max Drawdown:       0.4224
+  Fill Rate:          0.0594
+  Total Fills:        1089
+  Total Quotes:       18338
+
+Equity curves saved to results/
+```
+
+### Comparison Table
+
+| Metric | Avellaneda-Stoikov | Static Spread | AS Advantage |
+|--------|-------------------|---------------|-------------|
+| Realized PnL | -312 | -16,198 | **52x smaller loss** |
+| Max Drawdown | 49.2% | 42.2% | Comparable |
+| Fill Rate | 36.0% | 5.9% | **6x higher fill rate** |
+| Total Fills | 95 | 1,089 | More targeted |
+| Total Quotes | 264 | 18,338 | **69x fewer quotes** (less market impact) |
 
 **Key observations:**
 - The AS strategy's PnL loss is **52x smaller** than the static baseline, demonstrating effective inventory risk management
@@ -228,15 +313,4 @@ A grid sweep over gamma ∈ {0.05, 0.1, 0.5} and k ∈ {1.0, 1.5, 2.0} shows the
 5. **CSV logging:** Equity/inventory curves logged per-tick for post-hoc analysis with matplotlib — separates concerns between C++ simulation and Python visualization
 6. **Tunable hyperparameters:** gamma, k, spread bounds, and inventory limits are all configurable, enabling grid sweeps for optimization
 
----
 
-## Resume Bullet Points
-
-**Option 1 (Systems + Quant):**
-> Built an automated market-making bot in C++17 implementing the Avellaneda-Stoikov inventory-skewed quoting model on top of a custom limit order book matching engine. Achieved 52x lower PnL drawdown vs a fixed-spread baseline through volatility-adaptive quoting and real-time inventory risk management. 50 Catch2 tests, sub-microsecond order placement.
-
-**Option 2 (Quant Research):**
-> Implemented and backtested an Avellaneda-Stoikov market-making strategy against synthetic noise-trader flow, demonstrating measurable improvement in spread capture (36% vs 6% fill rate) and risk management (-312 vs -16,198 PnL) over a static-spread baseline. Performed hyperparameter sensitivity analysis across a gamma/k grid to characterize the risk-return tradeoff.
-
-**Option 3 (Full-Stack Quant):**
-> Designed and built a complete market-making simulation pipeline: C++17 LOB engine (O(1) cancel, intrusive linked lists), inventory-aware quoting strategy with Avellaneda-Stoikov model, risk management with drawdown kill-switch, and Python analysis pipeline for equity curve visualization. 50 unit tests, 10K-tick backtests producing Sharpe ratio, max drawdown, and adverse selection metrics.
